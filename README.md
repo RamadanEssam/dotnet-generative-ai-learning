@@ -2,6 +2,34 @@
 
 تطبيقات تعليمية خطوة بخطوة باستخدام **.NET 10** و**Microsoft.Extensions.AI** و**Ollama محليًا**.
 
+## مركز المذاكرة في Notion
+
+[🤖 AI Transition & GenAI for .NET Study Hub](https://app.notion.com/p/AI-Transition-GenAI-for-NET-Study-Hub-3ee32897ce718106b839f0b097be7e02)
+
+الـ Study Hub هو المرجع للمفاهيم والمراجعة وملاحظات الدروس، وهذا المستودع هو التطبيق العملي القابل للتشغيل. ترتيب المذاكرة في Notion هو **Course → Section → Lesson**، مع تمييز **Pre-study / Extra Notes** عن دروس الكورس.
+
+الكورس الأساسي: **Develop Chat, Vector Search, VectorDB, RAG and EShop AI Apps using OpenAI, Ollama and Microsoft Extensions AI (MEAI)** — Mehmet Ozkaya. هذه التطبيقات تستخدم Ollama محليًا، وقد تختلف إعدادات المزوّد وإصدارات الحزم عن مثال المدرب.
+
+| مرجع المذاكرة | علاقته بالكود هنا |
+|---|---|
+| [Section 1 — Introduction](https://app.notion.com/p/3ef32897ce7181fca65ac564d3481e2b) | خريطة الكورس والمشاريع |
+| [Section 2 — GenAI Concepts](https://app.notion.com/p/3ef32897ce7181868c11e5441b09d32a) | LLM، Tokens، Context، Prompt Engineering |
+| [.NET + AI Ecosystem](https://app.notion.com/p/3f632897ce7181be9516c4b637e2f4a7) | فهم العقود والتكاملات مثل IChatClient |
+| [Section 4 — Setup LLM Providers](https://app.notion.com/p/3f732897ce7181bc8191ef7499d4da60) | إعداد Ollama؛ طريقة تشغيل النسخة المحلية موضحة أدناه |
+| [Section 5 — Chat, Text Analysis and Function Calling](https://app.notion.com/p/3f832897ce7181da8990f059fa6b3c21) | `TextCompletion` و`FunctionCall`؛ و`ProductStock` تجربة إضافية لتثبيت الفكرة |
+| [Section 6 — Vector Embeddings and Vector Store](https://app.notion.com/p/40332897ce71818d9cb3efa12a4a8909) | `section6_vectors/Embeddings` و`section6_vectors/VectorSearch` |
+
+قد تتطلب صفحات Notion تسجيل الدخول أو صلاحية وصول. الشرح الأساسي وأوامر التشغيل موجودة هنا أيضًا، ولا يتطلب بناء المشاريع حساب Notion.
+
+### طريقة الاستفادة من الاثنين
+
+1. اقرأ المفهوم والدرس المقابل في Notion.
+2. افتح المشروع واقرأ المثال النشط؛ أمثلة الدروس السابقة محفوظة في regions معلّقة عند وجودها.
+3. شغّل المثال، وافحص مخرجاته أو استخدم breakpoint، ثم جرّب تغييرًا صغيرًا.
+4. سجّل في Notion: ما فهمته، والنتيجة الفعلية، وما لم يتضح، والخطوة التالية.
+
+**حدود التنفيذ الحالي:** قد تناقش الملاحظات Qdrant وChunking وRAG ومشاريع مستقبلية؛ وجودها في خريطة الدراسة لا يعني تنفيذها في هذا المستودع. مرجع الحالة العملية هو جدول المشاريع والكود الحالي، وليس قائمة الموضوعات المخططة.
+
 ## المشاريع
 
 | المشروع | الموضوع | التنفيذ الحالي |
@@ -114,6 +142,12 @@ Query → same embedding model → Top-2 candidates → example threshold
 - خطأ 404 مع اسم موديل: تحقق من تنزيله داخل نفس Ollama الذي يتصل به التطبيق.
 - واجهنا Windows Application Control عند التشغيل داخل OneDrive؛ نجح التشغيل من مسار تطوير محلي مثل `C:\Dev`، دون تغيير سياسات الأمان.
 - عند تبديل الأمثلة، فعّل region المطلوبة فقط لتجنب إرسال طلبات متعددة دون قصد.
+
+### حدود عزل المزوّد
+
+`CreateEmbeddingGenerator()` تجمع عنوان Ollama واسم `all-minilm` وإنشاء `OllamaApiClient` في مكان واحد، بينما يستخدم indexing وretrieval واجهة `IEmbeddingGenerator<string, Embedding<float>>`. هذا ليس اختيارًا جاهزًا بين Cloud وLocal؛ التنفيذ الحالي يرجع Ollama دائمًا. كذلك إنشاء `InMemoryVectorStore` لا يزال مباشرًا في `Program.cs`، ولم يُضف موصل Qdrant.
+
+قرار **توليد المتجهات** منفصل عن قرار **تخزينها والبحث فيها**. تغيير المزوّد قد يحافظ على شكل التدفق، لكنه يحتاج مراجعة توافق النموذج والأبعاد والبيانات والدرجات.
 
 ## مراجع التعلّم
 
