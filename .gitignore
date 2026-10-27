@@ -1,0 +1,33 @@
+# Build output and IDE state
+**/bin/
+**/obj/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local settings and credentials
+.env
+.env.*
+!.env.example
+**/secrets.json
+**/appsettings.Local.json
+**/appsettings.*.local.json
+*.pfx
+*.p12
+*.pem
+*.key
+NuGet.Config
+nuget.config
+
+# Generated output
+TestResults/
+artifacts/
+*.log
+*.nupkg
+*.snupkg
+.DS_Store
+Thumbs.db

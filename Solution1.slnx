@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/section6_vectors/">
+    <Project Path="section6_vectors/Embeddings/Embeddings.csproj" />
+    <Project Path="section6_vectors/VectorSearch/VectorSearch.csproj" />
+  </Folder>
+  <Project Path="FunctionCall/FunctionCall.csproj" />
+  <Project Path="ProductStock/ProductStock.csproj" />
+  <Project Path="TextCompletion/TextCompletion.csproj" />
+</Solution>

@@ -1,0 +1,125 @@
+# .NET Generative AI Learning
+
+تطبيقات تعليمية خطوة بخطوة باستخدام **.NET 10** و**Microsoft.Extensions.AI** و**Ollama محليًا**.
+
+## المشاريع
+
+| المشروع | الموضوع | التنفيذ الحالي |
+|---|---|---|
+| `TextCompletion` | Completion، Streaming، Classification، Summarization، Sentiment، Structured Output، Chat History | ChatApp هو المثال النشط؛ الأمثلة السابقة داخل regions معلّقة |
+| `FunctionCall` | استدعاء دالة C# للطقس تلقائيًا | اختيار موديل وفحص tools؛ بيانات الطقس محاكاة |
+| `ProductStock` | Function Calling للاستعلام عن مخزون منتج | Dictionary تجريبية؛ ليست قاعدة بيانات |
+| `section6_vectors/Embeddings` | Embeddings وCosine Similarity وSemantic Search | ترتيب جمل حسب قربها من السؤال |
+| `section6_vectors/VectorSearch` | تخزين وبحث المتجهات داخل الذاكرة | أفلام، Top-K، threshold تجريبي، وعزل إنشاء المولّد |
+
+## المتطلبات
+
+- .NET 10 SDK.
+- Ollama يعمل على `http://localhost:11434/`، مباشرة أو داخل Docker.
+- `llama3.2` للمحادثة وFunction Calling، و`all-minilm` للـ embeddings.
+- Visual Studio يدعم .NET 10 أو أي محرر مع dotnet CLI.
+
+النماذج ليست ضمن المستودع. لتنزيلها داخل حاوية اسمها `ollama` تعمل بالفعل:
+
+```powershell
+docker exec ollama ollama pull llama3.2
+docker exec ollama ollama pull all-minilm
+```
+
+لو Ollama مثبت مباشرة على الجهاز، استخدم `ollama pull` دون `docker exec`.
+
+## الاستعادة والبناء
+
+من جذر المستودع:
+
+```powershell
+dotnet restore Solution1.slnx --source https://api.nuget.org/v3/index.json
+dotnet build Solution1.slnx --no-restore
+```
+
+تحديد المصدر الرسمي مفيد إذا كانت إعدادات NuGet على الجهاز تحتوي مصادر خاصة غير متاحة. لا يغيّر إعدادات NuGet العامة.
+
+## إعدادات التطوير المحلية
+
+ملفات User Secrets خارج المستودع. وجود UserSecretsId في csproj لا ينقل القيم إلى جهاز جديد، والمعرف نفسه ليس كلمة مرور.
+
+### TextCompletion
+
+```powershell
+dotnet user-secrets set "AI:Endpoint" "http://localhost:11434/v1" --project TextCompletion
+dotnet user-secrets set "AI:ApiKey" "ollama" --project TextCompletion
+dotnet user-secrets set "AI:ChatModel" "llama3.2:latest" --project TextCompletion
+dotnet run --project TextCompletion
+```
+
+هذا المشروع يستخدم واجهة OpenAI-compatible المحلية. القيمة `ollama` شكلية وليست مفتاحًا سحابيًا. اختر الموديل من القائمة ثم اكتب رسائل المحادثة. يمكن إنهاء التشغيل بـ Ctrl+C.
+
+### FunctionCall
+
+```powershell
+dotnet user-secrets set "AI:Endpoint" "http://localhost:11434/" --project FunctionCall
+dotnet user-secrets set "AI:ChatModel" "llama3.2:latest" --project FunctionCall
+dotnet run --project FunctionCall
+```
+
+يستخدم OllamaSharp الأصلي دون `/v1` ودون API key. اختر موديلًا يدعم الأدوات؛ نجاحنا العملي كان مع `llama3.2:latest`. إعلان tools وحده لا يضمن صحة سلوك كل نموذج. رسالة `[Tool invoked]` تثبت دخول دالة C#، وليس بالضرورة صحة كل مدخل أو النتيجة النهائية.
+
+### بقية المشاريع
+
+```powershell
+dotnet run --project ProductStock
+dotnet run --project section6_vectors/Embeddings
+dotnet run --project section6_vectors/VectorSearch
+```
+
+## خريطة التعلّم
+
+```mermaid
+flowchart LR
+    A[Completion] --> B[Streaming]
+    B --> C[Classification and Extraction]
+    C --> D[Chat History]
+    D --> E[Function Calling]
+    E --> F[Embeddings]
+    F --> G[Semantic Search]
+    G --> H[In-memory Vector Store]
+```
+
+### Function Calling
+
+```text
+User Prompt → LLM selects tool + arguments → .NET executes function
+→ Tool result → LLM final answer
+```
+
+التطبيق مسؤول عن تنفيذ الأدوات والتحقق والصلاحيات في الأنظمة الفعلية. النماذج قد تخطئ أو تتجاهل التعليمات. Structured Output يضبط بنية الاستجابة ولا يضمن صحة المعلومات.
+
+### Vector Search
+
+```text
+Movie description → all-minilm → 384-dimensional vector → upsert
+Query → same embedding model → Top-2 candidates → example threshold
+```
+
+- InMemoryVectorStore يخزن داخل ذاكرة العملية فقط؛ البيانات تزول عند انتهاء التشغيل.
+- لا يوجد Qdrant أو RAG في المرحلة الحالية.
+- درجات التشابه ليست احتمالات أو نسبًا مئوية.
+- `0.20` حد تعليمي فقط؛ يحتاج تقييمًا قبل استخدامه في تطبيق فعلي.
+- تغيير نموذج Embeddings يتطلب مراجعة الأبعاد وإعادة توليد متجهات البيانات وتقييم threshold.
+- إنشاء المولّد معزول في `CreateEmbeddingGenerator()`، دون DI أو طبقات إضافية.
+
+## ملاحظات التشغيل
+
+- خطأ اتصال localhost: تحقق من تشغيل Ollama. مع Docker، افتح Docker Desktop وانتظر جاهزية المحرك قبل `docker start ollama`.
+- خطأ 404 مع اسم موديل: تحقق من تنزيله داخل نفس Ollama الذي يتصل به التطبيق.
+- واجهنا Windows Application Control عند التشغيل داخل OneDrive؛ نجح التشغيل من مسار تطوير محلي مثل `C:\Dev`، دون تغيير سياسات الأمان.
+- عند تبديل الأمثلة، فعّل region المطلوبة فقط لتجنب إرسال طلبات متعددة دون قصد.
+
+## مراجع التعلّم
+
+- [شرح TextCompletion بالعربي](TEXT_COMPLETION_WALKTHROUGH.md): شرح تفصيلي للمرحلة الأولى؛ الكود الحالي تطور بعدها ليشمل اختيار الموديل والشات والأمثلة الإضافية.
+- [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
+- [VectorData](https://learn.microsoft.com/semantic-kernel/concepts/vector-store-connectors/)
+- [Ollama](https://docs.ollama.com/)
+
+المستودع أمثلة تعليمية، وليس تطبيق إنتاج مكتملًا. الطقس والمخزون بيانات تجريبية، ولا توجد مفاتيح سحابية مطلوبة للأمثلة المحلية.
